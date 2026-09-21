@@ -1,0 +1,42 @@
+# Prueba: nginx expuesto con un Service LoadBalancer
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lb-test
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lb-test
+  template:
+    metadata:
+      labels:
+        app: lb-test
+    spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: nginx
+          image: nginxinc/nginx-unprivileged:1.27-alpine
+          ports:
+            - containerPort: 8080
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lb-test
+  namespace: default
+spec:
+  type: LoadBalancer
+  selector:
+    app: lb-test
+  ports:
+    - port: 80
+      targetPort: 8080

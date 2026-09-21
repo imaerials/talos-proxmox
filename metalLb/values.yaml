@@ -1,0 +1,4 @@
+# metallb/metallb 0.16.1 — modo L2
+# FRR-K8s solo se usa para BGP; en L2 no hace falta
+frrk8s:
+  enabled: false
