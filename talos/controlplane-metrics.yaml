@@ -1,0 +1,25 @@
+# Expone las métricas de los componentes del control plane en 0.0.0.0
+# para que Prometheus (kube-prometheus-stack) pueda scrapearlas.
+#
+# Por defecto Talos las bindea a 127.0.0.1 (hardening): Prometheus scrapea
+# la IP del nodo y la conexión es rechazada.
+#
+# En kube-proxy se deshabilita el scraping con TLS del kubelet (secure
+# serving) porque kube-proxy escucha solo en HTTP.
+# En scheduler/controller-manager se fija el bind-address en 0.0.0.0.
+#
+# Aplicar al control plane:
+#   talosctl -n $CONTROL_PLANE_IP patch machineconfig --patch @talos/controlplane-metrics.yaml
+#
+# Referencia (Talos, "Monitoring & Observability"):
+#   https://docs.siderolabs.com/kubernetes-guides/monitoring-and-observability/
+cluster:
+  proxy:
+    extraArgs:
+      metrics-bind-address: 0.0.0.0:10249
+  scheduler:
+    extraArgs:
+      bind-address: 0.0.0.0
+  controllerManager:
+    extraArgs:
+      bind-address: 0.0.0.0
