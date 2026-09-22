@@ -1,0 +1,35 @@
+# CA propia del lab:
+#  1. selfsigned: emisor autofirmado, solo para crear la CA
+#  2. lab-ca (Certificate): certificado de la CA, guardado en el Secret cert-manager/lab-ca
+#  3. lab-ca (ClusterIssuer): firma los certificados de las apps
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: selfsigned
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: lab-ca
+  namespace: cert-manager
+spec:
+  isCA: true
+  commonName: Talos Lab CA
+  secretName: lab-ca
+  duration: 87600h   # 10 años
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: selfsigned
+    kind: ClusterIssuer
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: lab-ca
+spec:
+  ca:
+    secretName: lab-ca
