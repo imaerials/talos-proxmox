@@ -43,3 +43,14 @@ adminPassword: admin
 
 service:
   type: ClusterIP
+
+# Dashboards como código: el sidecar lee ConfigMaps con label
+# grafana_dashboard=1 (ver monitoring/dashboards/DASHBOARDS.md)
+# y el chart hace el provisioning en /tmp/dashboards.
+sidecar:
+  dashboards:
+    enabled: true
+    label: grafana_dashboard
+    labelValue: "1"
+    folder: /tmp/dashboards
+    searchNamespace: grafana
