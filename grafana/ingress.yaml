@@ -1,0 +1,25 @@
+# Ingress de Grafana: mismo patrón que ingress/test-whoami.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana
+  namespace: grafana
+  annotations:
+    cert-manager.io/cluster-issuer: lab-ca
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - grafana.192.168.68.200.nip.io
+      secretName: grafana-ingress-tls
+  rules:
+    - host: grafana.192.168.68.200.nip.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: grafana
+                port:
+                  number: 80

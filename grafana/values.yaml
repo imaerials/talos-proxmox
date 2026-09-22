@@ -1,0 +1,45 @@
+# Chart: https://github.com/grafana/helm-charts/tree/main/charts/grafana
+# Version fijada en GRAFANA.md; host e Ingress van aparte en ingress.yaml.
+# Replicas: 1 + PVC RWO: Recreate para no dead-lockear el rollout
+# (con RollingUpdate el pod nuevo puede caer en otro nodo y el volumen
+# sigue adjunto al viejo → Multi-Attach error).
+deploymentStrategy:
+  type: Recreate
+
+initChownData:
+  # Evita el init container que corre como root (violaba PodSecurity
+  # restricted); fsGroup del podSecurityContext se ocupa de los permisos.
+  enabled: false
+
+persistence:
+  enabled: true
+  storageClassName: longhorn
+  size: 5Gi
+  accessModes:
+    - ReadWriteOnce
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 512Mi
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 472
+  runAsGroup: 472
+  fsGroup: 472
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: [ALL]
+
+adminUser: admin
+adminPassword: admin
+
+service:
+  type: ClusterIP
