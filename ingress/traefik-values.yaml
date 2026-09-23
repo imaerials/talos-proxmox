@@ -16,3 +16,26 @@ ports:
           to: websecure
           scheme: https
           permanent: true
+
+# HA: 2 réplicas, una por worker (DoNotSchedule).
+# - matchLabelKeys pod-template-hash: cada revisión se reparte por separado,
+#   así el pod extra del rolling update (maxSurge) no queda Pending.
+# - nodeTaintsPolicy Honor: el control plane y los nodos caídos (con taint)
+#   no cuentan; si cae un worker, la réplica se reprograma en el otro.
+deployment:
+  replicas: 2
+
+podDisruptionBudget:
+  enabled: true
+  maxUnavailable: 1
+
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: DoNotSchedule
+    nodeTaintsPolicy: Honor
+    matchLabelKeys: [pod-template-hash]
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: traefik
+        app.kubernetes.io/instance: traefik-traefik

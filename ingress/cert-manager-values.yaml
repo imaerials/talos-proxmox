@@ -1,0 +1,54 @@
+# jetstack/cert-manager v1.21.2
+crds:
+  enabled: true
+
+# HA: 2 réplicas por componente, una por worker (mismo esquema que Traefik:
+# DoNotSchedule + nodeTaintsPolicy Honor + matchLabelKeys pod-template-hash).
+# El controller y el cainjector usan leader election (una sola réplica activa);
+# el webhook atiende en todas y es el que bloquea la creación de recursos si cae.
+replicaCount: 2
+podDisruptionBudget:
+  enabled: true
+  maxUnavailable: 1
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: DoNotSchedule
+    nodeTaintsPolicy: Honor
+    matchLabelKeys: [pod-template-hash]
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/instance: cert-manager
+        app.kubernetes.io/component: controller
+
+webhook:
+  replicaCount: 2
+  podDisruptionBudget:
+    enabled: true
+    maxUnavailable: 1
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: DoNotSchedule
+      nodeTaintsPolicy: Honor
+      matchLabelKeys: [pod-template-hash]
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/instance: cert-manager
+          app.kubernetes.io/component: webhook
+
+cainjector:
+  replicaCount: 2
+  podDisruptionBudget:
+    enabled: true
+    maxUnavailable: 1
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: DoNotSchedule
+      nodeTaintsPolicy: Honor
+      matchLabelKeys: [pod-template-hash]
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/instance: cert-manager
+          app.kubernetes.io/component: cainjector

@@ -32,8 +32,11 @@ cliente ──https──▶ 192.168.68.200 (MetalLB L2) ──▶ Traefik ─�
 helm repo add jetstack https://charts.jetstack.io && helm repo update
 helm install cert-manager jetstack/cert-manager \
   -n cert-manager --create-namespace --version v1.21.2 \
-  --set crds.enabled=true
+  -f ingress/cert-manager-values.yaml
 ```
+
+`ingress/cert-manager-values.yaml` instala los CRDs y corre controller, webhook y cainjector
+con 2 réplicas, una por worker, cada uno con su PodDisruptionBudget (ver [HA](#ha)).
 
 ```bash
 kubectl -n cert-manager rollout status deploy/cert-manager-webhook
@@ -80,6 +83,7 @@ Archivo `ingress/traefik-values.yaml`:
 - IP fija `192.168.68.200` de MetalLB (anotación `metallb.io/loadBalancerIPs`).
 - Traefik como `IngressClass` por defecto.
 - Redirección permanente de http a https.
+- 2 réplicas, una por worker, con PodDisruptionBudget (ver [HA](#ha)).
 
 ### 2.2 Instalar
 
@@ -162,3 +166,28 @@ Como el cluster no está expuesto a internet, el desafío tiene que ser **DNS-01
 | `nip.io` no resuelve | El router bloquea respuestas DNS con IPs privadas (DNS rebinding protection): usar `/etc/hosts` o DNS local |
 | El navegador marca el certificado inválido | Falta importar `lab-ca.crt` en ese cliente (paso 1.3) |
 | 404 de Traefik | El `host` del Ingress no coincide con la URL, o falta `ingressClassName` y Traefik no es la clase por defecto |
+
+## HA
+
+Traefik y cert-manager corren 2 réplicas repartidas entre los dos workers con
+`topologySpreadConstraints`:
+
+- `whenUnsatisfiable: DoNotSchedule`: con `ScheduleAnyway` el scoring por recursos
+  gana y el scheduler puede apilar las dos réplicas en el nodo más vacío.
+- `nodeTaintsPolicy: Honor`: el control plane (taint `NoSchedule`) y un worker caído
+  (taint `unreachable`) no cuentan como destino; si cae un worker, la réplica se
+  reprograma en el otro en vez de quedar Pending.
+- `matchLabelKeys: [pod-template-hash]`: cada revisión se reparte por separado, así
+  el pod extra del rolling update (`maxSurge`) no queda Pending.
+
+Kubernetes no rebalancea pods que ya están corriendo: si un worker arranca tarde
+(p. ej. después de reiniciar el host), lo que se programó mientras tanto queda en el
+otro. Para Deployments sin estas reglas se corrige con `kubectl rollout restart`.
+
+Verificar el reparto:
+
+```bash
+kubectl get pods -n traefik -o wide
+kubectl get pods -n cert-manager -o wide
+kubectl get pdb -A
+```
