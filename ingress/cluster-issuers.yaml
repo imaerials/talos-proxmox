@@ -22,6 +22,9 @@ spec:
   privateKey:
     algorithm: ECDSA
     size: 256
+    # Mantener la clave al renovar (default Always desde v1.18): con una clave
+    # nueva, los clientes que importaron lab-ca.crt dejan de confiar en la CA
+    rotationPolicy: Never
   issuerRef:
     name: selfsigned
     kind: ClusterIssuer
