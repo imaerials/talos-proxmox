@@ -1,3 +1,7 @@
+# Talos en Proxmox: cluster base
+
+VMs en Proxmox, Talos, bootstrap del cluster y disco de datos para Longhorn.
+
 ## 0. Variables
 
 Todo el documento usa estas variables. Se corre desde la raíz del repo.
@@ -105,7 +109,7 @@ for ip in $WORKER1_IP $WORKER2_IP; do
 done
 ```
 
-## 4. Bootstrap the cluster
+## 4. Bootstrap del cluster
 
 ### 4.1 Configurar talosctl
 
@@ -115,19 +119,19 @@ talosctl config endpoint $CONTROL_PLANE_IP
 talosctl config node $CONTROL_PLANE_IP
 ```
 
-### 4.2 Bootstrap etcd
+### 4.2 Bootstrap de etcd
 
 ```bash
 talosctl bootstrap
 ```
 
-### 4.3 Retrieve the kubeconfig
+### 4.3 Obtener el kubeconfig
 
 ```bash
 talosctl kubeconfig -e $CONTROL_PLANE_IP
 ```
 
-### 4.4 Verify that your cluster is ready
+### 4.4 Verificar que el cluster esté listo
 
 ```bash
 kubectl get nodes

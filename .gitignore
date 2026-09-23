@@ -1,1 +1,3 @@
 _out/
+# CA del lab exportada en ingress/INGRESS.md (paso 1.3)
+*.crt
