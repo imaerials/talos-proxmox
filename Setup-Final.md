@@ -150,35 +150,6 @@ Si la config se generó sin el patch del paso 2.1, aplicarlo ahora:
 talosctl -n $WORKER1_IP,$WORKER2_IP patch machineconfig --patch @talos/longhorn-user-disk.yaml
 ```
 
-### 5.2 Namespace con pod security privilegiado
+### 5.2 Instalar
 
-```bash
-kubectl create namespace longhorn-system
-kubectl label namespace longhorn-system pod-security.kubernetes.io/{enforce,audit,warn}=privileged
-```
-
-### 5.3 Instalar Longhorn (chart 1.12.1)
-
-```bash
-helm repo add longhorn https://charts.longhorn.io && helm repo update
-helm install longhorn longhorn/longhorn -n longhorn-system --version 1.12.1 \
-  --set defaultSettings.defaultDataPath=/var/mnt/longhorn \
-  --set defaultSettings.defaultReplicaCount=2 \
-  --set persistence.defaultClassReplicaCount=2
-```
-
-### 5.4 Verificar
-
-```bash
-kubectl -n longhorn-system rollout status deploy/longhorn-driver-deployer
-kubectl get nodes.longhorn.io -n longhorn-system   # 2 workers, SCHEDULABLE=true
-```
-
-### 5.5 UI
-
-No está expuesta. Para entrar:
-
-```bash
-kubectl -n longhorn-system port-forward svc/longhorn-frontend 8080:80
-# http://localhost:8080
-```
+Namespace, Helm y verificación: ver `longhorn/LONGHORN.md`.

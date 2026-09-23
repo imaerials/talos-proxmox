@@ -1,0 +1,9 @@
+# longhorn/longhorn 1.12.1
+defaultSettings:
+  # Disco de datos de los workers, montado por talos/longhorn-user-disk.yaml
+  defaultDataPath: /var/mnt/longhorn
+  # 2 workers → una réplica en cada uno
+  defaultReplicaCount: 2
+
+persistence:
+  defaultClassReplicaCount: 2
