@@ -17,6 +17,14 @@ ports:
           scheme: https
           permanent: true
 
+# Dashboard en https://traefik.192.168.68.200.nip.io/dashboard/ (sin autenticación:
+# visible para toda la LAN).
+ingressRoute:
+  dashboard:
+    enabled: true
+    matchRule: Host(`traefik.192.168.68.200.nip.io`)
+    entryPoints: [websecure]
+
 # HA: 2 réplicas, una por worker (DoNotSchedule).
 # - matchLabelKeys pod-template-hash: cada revisión se reparte por separado,
 #   así el pod extra del rolling update (maxSurge) no queda Pending.

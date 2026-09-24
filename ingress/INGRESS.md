@@ -83,6 +83,7 @@ Archivo `ingress/traefik-values.yaml`:
 - IP fija `192.168.68.200` de MetalLB (anotación `metallb.io/loadBalancerIPs`).
 - Traefik como `IngressClass` por defecto.
 - Redirección permanente de http a https.
+- Dashboard en `traefik.192.168.68.200.nip.io` (ver [Dashboard](#dashboard)).
 - 2 réplicas, una por worker, con PodDisruptionBudget (ver [HA](#ha)).
 
 ### 2.2 Instalar
@@ -98,6 +99,25 @@ helm install traefik traefik/traefik \
 kubectl -n traefik rollout status deploy/traefik
 kubectl -n traefik get svc traefik   # EXTERNAL-IP = 192.168.68.200
 kubectl get ingressclass             # traefik (default)
+```
+
+### Dashboard
+
+<https://traefik.192.168.68.200.nip.io/dashboard/> (la `/` final es necesaria). Lo publica
+un `IngressRoute` que crea el chart (`ingressRoute.dashboard`) en el entrypoint `websecure`,
+con el certificado por defecto de Traefik (autofirmado: el navegador pide aceptar la excepción).
+
+```bash
+kubectl -n traefik get ingressroute traefik-dashboard
+curl -k https://traefik.192.168.68.200.nip.io/api/version
+```
+
+No tiene autenticación: cualquiera en la LAN ve la configuración de ruteo (es de solo
+lectura). Para no exponerlo, poner `ingressRoute.dashboard.enabled: false` y entrar con
+port-forward en <http://localhost:8080/dashboard/>:
+
+```bash
+kubectl -n traefik port-forward deploy/traefik 8080:8080
 ```
 
 ## 3. Probar
