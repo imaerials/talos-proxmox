@@ -1,19 +1,22 @@
 # Hace que el kubelet pida su certificado de serving (puerto 10250) a la CA del
-# cluster en vez de usar uno autofirmado.
+# cluster en vez de usar uno autofirmado ("Option 2: Rotate kubelet
+# certificates" de la guía de Talos).
 #
 # metrics-server se conecta a cada kubelet por HTTPS y valida ese certificado:
 # con el autofirmado de Talos falla con "x509: cannot validate certificate".
 # Los CSR que genera el kubelet los aprueba kubelet-serving-cert-approver
 # (ver metrics-server/METRICS-SERVER.md).
 #
+# Se usa la forma machine.kubelet aunque el cluster corre Talos 1.14: la config
+# se generó con la sección .machine.kubelet y Talos no permite sumarle un
+# documento "kind: KubeletConfig" (la forma nueva de la guía para configs
+# generadas desde 1.14).
+#
 # Aplicar a todos los nodos:
 #   talosctl -n $CONTROL_PLANE_IP,$WORKER1_IP,$WORKER2_IP patch machineconfig --patch @talos/kubelet-serving-certs.yaml
 #
 # Referencia (Talos, "Deploying Metrics Server"):
 #   https://docs.siderolabs.com/kubernetes-guides/monitoring-and-observability/deploy-metrics-server
-#
-# Formato para Talos <= 1.13 (el cluster está en 1.13.9). Desde 1.14 la doc usa
-# un documento aparte "kind: KubeletConfig" con extraArgs.rotate-server-certificates.
 machine:
   kubelet:
     extraConfig:

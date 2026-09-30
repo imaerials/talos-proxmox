@@ -9,7 +9,7 @@ Referencia: <https://docs.siderolabs.com/kubernetes-guides/monitoring-and-observ
 |---|---|
 | Chart | `metrics-server/metrics-server` 3.14.0 (metrics-server 0.9.0) |
 | Aprobador de CSR | `kubelet-serving-cert-approver` v0.12.1 |
-| TLS al kubelet | Verificado (sin `--kubelet-insecure-tls`) |
+| TLS al kubelet | Verificado (sin `--kubelet-insecure-tls`): "Option 2: Rotate kubelet certificates" de la guía |
 
 ## Archivos
 
@@ -39,6 +39,11 @@ kubectl -n kubelet-serving-cert-approver rollout status deploy/kubelet-serving-c
 talosctl -n $CONTROL_PLANE_IP,$WORKER1_IP,$WORKER2_IP patch machineconfig \
   --patch @talos/kubelet-serving-certs.yaml
 ```
+
+El patch usa la forma `machine.kubelet.extraConfig`. La guía propone un documento
+`kind: KubeletConfig` para Talos 1.14+, pero esta config se generó con la sección
+`.machine.kubelet` y Talos rechaza tener las dos ("kubelet config is already set in
+v1alpha1 config").
 
 Talos reinicia el kubelet (sin reboot). Verificar que cada nodo tenga un CSR aprobado:
 
