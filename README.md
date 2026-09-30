@@ -4,11 +4,13 @@ Cluster Kubernetes de laboratorio con Talos Linux sobre Proxmox: 1 control plane
 con almacenamiento Longhorn, IPs de LoadBalancer con MetalLB e ingress HTTPS con Traefik y
 cert-manager.
 
-| Nodo | IP | Rol |
-|---|---|---|
-| `talos-cp-01` | `192.168.68.83` | Control plane |
-| `talos-w-01` | `192.168.68.82` | Worker (+ disco Longhorn) |
-| `talos-w-02` | `192.168.68.84` | Worker (+ disco Longhorn) |
+| VM | Hostname | IP | Rol |
+|---|---|---|---|
+| `talos-cp-01` | `talos-rhj-nfg` | `192.168.68.65` | Control plane |
+| `talos-w-01` | `talos-6my-jk5` | `192.168.68.63` | Worker (+ disco Longhorn) |
+| `talos-w-02` | `talos-nkg-n8o` | `192.168.68.66` | Worker (+ disco Longhorn) |
+
+Las IPs las da DHCP con reserva por MAC en el router.
 
 Diagrama del cluster: [`docs/talos-lab-infra.html`](docs/talos-lab-infra.html).
 

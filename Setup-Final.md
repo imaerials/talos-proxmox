@@ -10,9 +10,9 @@ Todo el documento usa estas variables. Se corre desde la raíz del repo.
 cd ~/talos-proxmox
 
 export CLUSTER_NAME=talos-proxmox-cluster
-export CONTROL_PLANE_IP=192.168.68.83
-export WORKER1_IP=192.168.68.82
-export WORKER2_IP=192.168.68.84
+export CONTROL_PLANE_IP=192.168.68.65
+export WORKER1_IP=192.168.68.63
+export WORKER2_IP=192.168.68.66
 export TALOSCONFIG="$PWD/_out/talosconfig"
 ```
 
