@@ -1,0 +1,6 @@
+# Values de metrics-server (chart metrics-server/metrics-server).
+#
+# No se agrega --kubelet-insecure-tls: los kubelets sirven un certificado
+# firmado por la CA del cluster (talos/kubelet-serving-certs.yaml), así que
+# metrics-server valida TLS normalmente.
+args: []

@@ -1,0 +1,17 @@
+# Hace que el kubelet pida su certificado de serving (puerto 10250) a la CA del
+# cluster en vez de usar uno autofirmado.
+#
+# metrics-server se conecta a cada kubelet por HTTPS y valida ese certificado:
+# con el autofirmado de Talos falla con "x509: cannot validate certificate".
+# Los CSR que genera el kubelet los aprueba kubelet-serving-cert-approver
+# (ver metrics-server/METRICS-SERVER.md).
+#
+# Aplicar a todos los nodos:
+#   talosctl -n $CONTROL_PLANE_IP,$WORKER1_IP,$WORKER2_IP patch machineconfig --patch @talos/kubelet-serving-certs.yaml
+#
+# Referencia (Talos, "Deploying Metrics Server"):
+#   https://docs.siderolabs.com/kubernetes-guides/monitoring-and-observability/deploy-metrics-server
+machine:
+  kubelet:
+    extraArgs:
+      rotate-server-certificates: "true"

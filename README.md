@@ -25,6 +25,7 @@ Todos los comandos se corren desde la raíz del repo.
 | 2 | [`longhorn/LONGHORN.md`](longhorn/LONGHORN.md) | Almacenamiento persistente (StorageClass `longhorn` por defecto) |
 | 3 | [`metalLb/METALLB.md`](metalLb/METALLB.md) | IPs `192.168.68.200-220` para Services `LoadBalancer` |
 | 4 | [`ingress/INGRESS.md`](ingress/INGRESS.md) | Traefik en `192.168.68.200` y certificados de la CA del lab |
+| 5 | [`metrics-server/METRICS-SERVER.md`](metrics-server/METRICS-SERVER.md) | `kubectl top` y métricas para HPA |
 
 ## Estructura
 
@@ -33,6 +34,7 @@ talos/      patches de machine config de Talos
 longhorn/   values y namespace de Longhorn
 metalLb/    values, namespace y pool de IPs de MetalLB
 ingress/    values de Traefik y cert-manager, CA del lab
+metrics-server/ values de metrics-server
 docs/       diagrama del cluster
 _out/       configs generadas por talosctl (con secretos, ignorado por git)
 ```
