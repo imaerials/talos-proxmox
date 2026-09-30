@@ -113,10 +113,18 @@ done
 
 ### 4.1 Configurar talosctl
 
+Usa el `TALOSCONFIG` exportado en la sección 0.
+
 ```bash
-export TALOSCONFIG="_out/talosconfig"
 talosctl config endpoint $CONTROL_PLANE_IP
 talosctl config node $CONTROL_PLANE_IP
+```
+
+Para usar `talosctl` desde cualquier directorio sin exportar `TALOSCONFIG`,
+mergear el contexto en `~/.talos/config`:
+
+```bash
+talosctl config merge _out/talosconfig
 ```
 
 ### 4.2 Bootstrap de etcd
