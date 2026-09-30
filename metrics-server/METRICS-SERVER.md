@@ -16,13 +16,13 @@ Referencia: <https://docs.siderolabs.com/kubernetes-guides/monitoring-and-observ
 | Archivo | Contenido |
 |---|---|
 | `values.yaml` | Values de Helm de metrics-server |
-| `../talos/kubelet-serving-certs.yaml` | Patch de Talos que activa `rotate-server-certificates` en el kubelet |
+| `../talos/kubelet-serving-certs.yaml` | Patch de Talos que activa `serverTLSBootstrap` en el kubelet |
 
 Todos los comandos se corren desde la raíz del repo.
 
 ## 1. Aprobador de certificados del kubelet
 
-Con `rotate-server-certificates` el kubelet pide su certificado de serving con un CSR que
+Con `serverTLSBootstrap` el kubelet pide su certificado de serving con un CSR que
 Kubernetes no aprueba solo. `kubelet-serving-cert-approver` los aprueba automáticamente
 (solo los de tipo `kubernetes.io/kubelet-serving` que vienen de nodos del cluster).
 
@@ -85,3 +85,10 @@ kubectl -n kube-system logs deploy/metrics-server
 
 - `x509: cannot validate certificate ... doesn't contain any IP SANs`: el kubelet sigue con el
   certificado autofirmado. Revisar el paso 2 (patch aplicado y CSR aprobados).
+
+Después de un `helm upgrade`, confirmar que quedó un solo pod. Si el nuevo no pasa el readiness,
+el viejo sigue sirviendo y esconde el problema:
+
+```bash
+kubectl -n kube-system get pods -l app.kubernetes.io/name=metrics-server
+```
