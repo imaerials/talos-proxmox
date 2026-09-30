@@ -59,6 +59,7 @@ svg .box{fill:var(--surface);stroke:var(--ink);stroke-width:1}
 svg .pod{fill:var(--sunk);stroke:var(--line);stroke-width:1}
 svg .ds{fill:none;stroke:var(--muted);stroke-width:1;stroke-dasharray:3 3}
 svg .hot{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.5}
+svg .metrics{fill:var(--sunk);stroke:var(--accent);stroke-width:1.2;stroke-dasharray:4 2}
 svg .disk{fill:var(--sunk);stroke:var(--ink);stroke-width:1}
 svg .pending{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
 svg .wire{stroke:var(--ink);stroke-width:1.2;fill:none}
@@ -89,13 +90,14 @@ code{font-family:var(--mono);font-size:.9em}
 
 <div class="wrap">
 <header>
-  <div class="eyebrow">talos-proxmox-cluster · relevado 2026-09-23</div>
+  <div class="eyebrow">talos-proxmox-cluster · relevado 2026-09-30</div>
   <h1>Talos Lab en Proxmox</h1>
-  <p class="lede">Infraestructura actual del cluster tal como la reportan <code>kubectl</code> y <code>helm</code> contra el API server en 192.168.68.65. Tres VMs Talos sobre un único host Proxmox, con MetalLB, Traefik, cert-manager y Longhorn instalados por Helm.</p>
+  <p class="lede">Infraestructura actual del cluster tal como la reportan <code>kubectl</code> y <code>helm</code> contra el API server en 192.168.68.65. Tres VMs Talos sobre un único host Proxmox, con MetalLB, Traefik, cert-manager, Longhorn y metrics-server instalados por Helm.</p>
   <div class="facts">
     <div><b>3/3</b> <span>nodos Ready</span></div>
     <div><b>Talos 1.14.2</b> <span>· k8s 1.36.3</span></div>
-    <div><b>4</b> <span>releases Helm</span></div>
+    <div><b>5</b> <span>releases Helm</span></div>
+    <div><b>kubectl top</b> <span>· metrics-server 0.9.0</span></div>
     <div><b>2×</b> <span>Traefik · cert-manager</span></div>
     <div><b>0</b> <span>Ingress</span></div>
     <div><b>0</b> <span>volúmenes Longhorn</span></div>
@@ -104,7 +106,7 @@ code{font-family:var(--mono);font-size:.9em}
 
 <figure>
   <div class="scroll">
-  <svg viewBox="0 0 1100 790" role="img" aria-label="Diagrama de infraestructura: un host Proxmox con tres VMs Talos en el bridge vmbr0. El tráfico HTTPS de la LAN llega a la VIP 192.168.68.200 anunciada por MetalLB y se reparte entre las dos réplicas de Traefik, una en cada worker. Los dos workers tienen un disco de 100 GB para Longhorn con dos réplicas, una por worker.">
+  <svg viewBox="0 0 1100 836" role="img" aria-label="Diagrama de infraestructura: un host Proxmox con tres VMs Talos en el bridge vmbr0. El tráfico HTTPS de la LAN llega a la VIP 192.168.68.200 anunciada por MetalLB y se reparte entre las dos réplicas de Traefik, una en cada worker. metrics-server corre en talos-w-01 y lee las métricas del kubelet de los tres nodos por HTTPS verificado. Los dos workers tienen un disco de 100 GB para Longhorn con dos réplicas, una por worker.">
     <defs>
       <marker id="aInk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="arrowInk"/></marker>
       <marker id="aAcc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="arrowAcc"/></marker>
@@ -131,7 +133,7 @@ code{font-family:var(--mono);font-size:.9em}
     <text class="mono t11 acc" x="713" y="64" text-anchor="middle">HTTPS</text>
 
     <!-- Proxmox host -->
-    <rect class="host" x="20" y="146" width="1060" height="572" rx="4"/>
+    <rect class="host" x="20" y="146" width="1060" height="618" rx="4"/>
     <text class="cap" x="170" y="166">PROXMOX VE · LOCAL-LVM</text>
     <line class="bridge" x1="40" y1="190" x2="1060" y2="190"/>
     <text class="mono t11 mut" x="170" y="183">vmbr0 (virtio) · flannel VXLAN entre nodos</text>
@@ -144,7 +146,7 @@ code{font-family:var(--mono);font-size:.9em}
     <text class="mono t11" x="160" y="137">API :6443 · apid :50000</text>
 
     <!-- VM: control plane -->
-    <rect class="vm" x="40" y="204" width="320" height="436" rx="3"/>
+    <rect class="vm" x="40" y="204" width="320" height="482" rx="3"/>
     <text class="t15" x="56" y="230">talos-cp-01</text>
     <text class="mono t11 mut" x="344" y="230" text-anchor="end">control-plane</text>
     <text class="mono t12 mut" x="56" y="250">talos-rhj-nfg · 192.168.68.65</text>
@@ -155,63 +157,64 @@ code{font-family:var(--mono);font-size:.9em}
     <rect class="pod" x="52" y="322" width="296" height="22" rx="2"/><text class="t12" x="62" y="337">etcd</text><text class="mono t11 mut" x="340" y="337" text-anchor="end">servicio Talos</text>
     <rect class="pod" x="52" y="350" width="296" height="22" rx="2"/><text class="t12" x="62" y="365">kube-scheduler</text>
     <rect class="pod" x="52" y="378" width="296" height="22" rx="2"/><text class="t12" x="62" y="393">kube-controller-manager</text>
-    <rect class="pod" x="52" y="406" width="296" height="22" rx="2"/><text class="t12" x="62" y="421">coredns ×2</text>
-    <rect class="ds" x="52" y="434" width="296" height="22" rx="2"/><text class="t12" x="62" y="449">metallb-speaker</text>
-    <rect class="ds" x="52" y="462" width="296" height="22" rx="2"/><text class="t12" x="62" y="477">kube-flannel · kube-proxy</text>
+    <rect class="ds" x="52" y="406" width="296" height="22" rx="2"/><text class="t12" x="62" y="421">metallb-speaker</text>
+    <rect class="ds" x="52" y="434" width="296" height="22" rx="2"/><text class="t12" x="62" y="449">kube-flannel · kube-proxy</text>
 
-    <rect class="disk" x="56" y="566" width="120" height="56" rx="3"/>
-    <text class="mono t12" x="68" y="590">sda · 30 GB</text>
-    <text class="t11 mut" x="68" y="608">sistema Talos</text>
-    <text class="t11 mut" x="192" y="590">sin disco Longhorn</text>
-    <text class="t11 mut" x="192" y="608">(no corre workloads)</text>
+    <rect class="disk" x="56" y="612" width="120" height="56" rx="3"/>
+    <text class="mono t12" x="68" y="636">sda · 30 GB</text>
+    <text class="t11 mut" x="68" y="654">sistema Talos</text>
+    <text class="t11 mut" x="192" y="636">sin disco Longhorn</text>
+    <text class="t11 mut" x="192" y="654">(no corre workloads)</text>
 
     <!-- VM: worker 1 -->
-    <rect class="vm" x="390" y="204" width="320" height="436" rx="3"/>
+    <rect class="vm" x="390" y="204" width="320" height="482" rx="3"/>
     <text class="t15" x="406" y="230">talos-w-01</text>
     <text class="mono t11 mut" x="694" y="230" text-anchor="end">worker</text>
     <text class="mono t12 mut" x="406" y="250">talos-6my-jk5 · 192.168.68.63</text>
     <text class="mono t12 mut" x="406" y="268">VM 211 · 4 vCPU · 6 GiB</text>
     <line class="sep" x1="402" y1="282" x2="698" y2="282"/>
 
-    <rect class="hot" x="402" y="294" width="296" height="22" rx="2"/><text class="t12 acc" x="412" y="309" font-weight="600">traefik v3.7.13</text><text class="mono t11 acc" x="658" y="309" text-anchor="end">réplica 1/2</text>
-    <rect class="pod" x="402" y="322" width="296" height="22" rx="2"/><text class="t12" x="412" y="337">cert-manager · cainjector · webhook</text>
-    <rect class="pod" x="402" y="350" width="296" height="22" rx="2"/><text class="t12" x="412" y="365">longhorn CSI sidecars</text><text class="mono t11 mut" x="690" y="365" text-anchor="end">×8</text>
-    <rect class="ds" x="402" y="378" width="296" height="22" rx="2"/><text class="t12" x="412" y="393">longhorn-manager · instance-manager</text>
-    <rect class="ds" x="402" y="406" width="296" height="22" rx="2"/><text class="t12" x="412" y="421">longhorn-csi-plugin · engine-image</text>
-    <rect class="ds" x="402" y="434" width="296" height="22" rx="2"/><text class="t12" x="412" y="449">metallb-speaker</text>
-    <rect class="ds" x="402" y="462" width="296" height="22" rx="2"/><text class="t12" x="412" y="477">kube-flannel · kube-proxy</text>
+    <rect class="hot" x="402" y="294" width="296" height="22" rx="2"/><text class="t12 acc" x="412" y="309" font-weight="600">traefik v3.7.13</text><text class="mono t11 acc" x="690" y="309" text-anchor="end">réplica 1/2</text>
+    <rect class="metrics" x="402" y="322" width="296" height="22" rx="2"/><text class="t12" x="412" y="337">metrics-server</text><text class="mono t11 mut" x="690" y="337" text-anchor="end">kubectl top · HPA</text>
+    <rect class="pod" x="402" y="350" width="296" height="22" rx="2"/><text class="t12" x="412" y="365">cert-manager · cainjector · webhook</text>
+    <rect class="pod" x="402" y="378" width="296" height="22" rx="2"/><text class="t12" x="412" y="393">coredns · metallb-controller</text>
+    <rect class="metrics" x="402" y="406" width="296" height="22" rx="2"/><text class="t12" x="412" y="421">kubelet-serving-cert-approver</text><text class="mono t11 mut" x="690" y="421" text-anchor="end">CSR</text>
+    <rect class="pod" x="402" y="434" width="296" height="22" rx="2"/><text class="t12" x="412" y="449">longhorn-ui ×2 · driver-deployer</text>
+    <rect class="pod" x="402" y="462" width="296" height="22" rx="2"/><text class="t12" x="412" y="477">longhorn CSI sidecars</text><text class="mono t11 mut" x="690" y="477" text-anchor="end">×12</text>
+    <rect class="ds" x="402" y="490" width="296" height="22" rx="2"/><text class="t12" x="412" y="505">longhorn-manager · instance-manager</text>
+    <rect class="ds" x="402" y="518" width="296" height="22" rx="2"/><text class="t12" x="412" y="533">longhorn-csi-plugin · engine-image</text>
+    <rect class="ds" x="402" y="546" width="296" height="22" rx="2"/><text class="t12" x="412" y="561">metallb-speaker</text>
+    <rect class="ds" x="402" y="574" width="296" height="22" rx="2"/><text class="t12" x="412" y="589">kube-flannel · kube-proxy</text>
 
-    <rect class="disk" x="406" y="566" width="120" height="56" rx="3"/>
-    <text class="mono t12" x="418" y="590">sda · 30 GB</text>
-    <text class="t11 mut" x="418" y="608">sistema Talos</text>
-    <rect class="disk" x="538" y="566" width="156" height="56" rx="3"/>
-    <text class="mono t12" x="550" y="590">sdb · 100 GB</text>
-    <text class="mono t11 mut" x="550" y="608">/var/mnt/longhorn</text>
+    <rect class="disk" x="406" y="612" width="120" height="56" rx="3"/>
+    <text class="mono t12" x="418" y="636">sda · 30 GB</text>
+    <text class="t11 mut" x="418" y="654">sistema Talos</text>
+    <rect class="disk" x="538" y="612" width="156" height="56" rx="3"/>
+    <text class="mono t12" x="550" y="636">sdb · 100 GB</text>
+    <text class="mono t11 mut" x="550" y="654">/var/mnt/longhorn</text>
 
     <!-- VM: worker 2 -->
-    <rect class="vm" x="740" y="204" width="320" height="436" rx="3"/>
+    <rect class="vm" x="740" y="204" width="320" height="482" rx="3"/>
     <text class="t15" x="756" y="230">talos-w-02</text>
-    <text class="mono t11 mut" x="1010" y="230" text-anchor="end">worker</text>
+    <text class="mono t11 mut" x="1044" y="230" text-anchor="end">worker</text>
     <text class="mono t12 mut" x="756" y="250">talos-nkg-n8o · 192.168.68.66</text>
     <text class="mono t12 mut" x="756" y="268">VM 212 · 4 vCPU · 6 GiB</text>
     <line class="sep" x1="752" y1="282" x2="1048" y2="282"/>
 
-    <rect class="hot" x="752" y="294" width="296" height="22" rx="2"/><text class="t12 acc" x="762" y="309" font-weight="600">traefik v3.7.13</text><text class="mono t11 acc" x="1008" y="309" text-anchor="end">réplica 2/2</text>
+    <rect class="hot" x="752" y="294" width="296" height="22" rx="2"/><text class="t12 acc" x="762" y="309" font-weight="600">traefik v3.7.13</text><text class="mono t11 acc" x="1040" y="309" text-anchor="end">réplica 2/2</text>
     <rect class="pod" x="752" y="322" width="296" height="22" rx="2"/><text class="t12" x="762" y="337">cert-manager · cainjector · webhook</text>
-    <rect class="pod" x="752" y="350" width="296" height="22" rx="2"/><text class="t12" x="762" y="365">metallb-controller</text>
-    <rect class="pod" x="752" y="378" width="296" height="22" rx="2"/><text class="t12" x="762" y="393">longhorn-ui ×2 · driver-deployer</text>
-    <rect class="pod" x="752" y="406" width="296" height="22" rx="2"/><text class="t12" x="762" y="421">longhorn CSI sidecars</text><text class="mono t11 mut" x="1040" y="421" text-anchor="end">×4</text>
-    <rect class="ds" x="752" y="434" width="296" height="22" rx="2"/><text class="t12" x="762" y="449">longhorn-manager · instance-manager</text>
-    <rect class="ds" x="752" y="462" width="296" height="22" rx="2"/><text class="t12" x="762" y="477">longhorn-csi-plugin · engine-image</text>
-    <rect class="ds" x="752" y="490" width="296" height="22" rx="2"/><text class="t12" x="762" y="505">metallb-speaker</text>
-    <rect class="ds" x="752" y="518" width="296" height="22" rx="2"/><text class="t12" x="762" y="533">kube-flannel · kube-proxy</text>
+    <rect class="pod" x="752" y="350" width="296" height="22" rx="2"/><text class="t12" x="762" y="365">coredns</text>
+    <rect class="ds" x="752" y="378" width="296" height="22" rx="2"/><text class="t12" x="762" y="393">longhorn-manager · instance-manager</text>
+    <rect class="ds" x="752" y="406" width="296" height="22" rx="2"/><text class="t12" x="762" y="421">longhorn-csi-plugin · engine-image</text>
+    <rect class="ds" x="752" y="434" width="296" height="22" rx="2"/><text class="t12" x="762" y="449">metallb-speaker</text>
+    <rect class="ds" x="752" y="462" width="296" height="22" rx="2"/><text class="t12" x="762" y="477">kube-flannel · kube-proxy</text>
 
-    <rect class="disk" x="756" y="566" width="120" height="56" rx="3"/>
-    <text class="mono t12" x="768" y="590">sda · 30 GB</text>
-    <text class="t11 mut" x="768" y="608">sistema Talos</text>
-    <rect class="disk" x="888" y="566" width="156" height="56" rx="3"/>
-    <text class="mono t12" x="900" y="590">sdb · 100 GB</text>
-    <text class="mono t11 mut" x="900" y="608">/var/mnt/longhorn</text>
+    <rect class="disk" x="756" y="612" width="120" height="56" rx="3"/>
+    <text class="mono t12" x="768" y="636">sda · 30 GB</text>
+    <text class="t11 mut" x="768" y="654">sistema Talos</text>
+    <rect class="disk" x="888" y="612" width="156" height="56" rx="3"/>
+    <text class="mono t12" x="900" y="636">sdb · 100 GB</text>
+    <text class="mono t11 mut" x="900" y="654">/var/mnt/longhorn</text>
 
     <!-- ingress flow into traefik -->
     <line class="flow" x1="1030" y1="106" x2="1030" y2="291" marker-end="url(#aAcc)"/>
@@ -219,19 +222,20 @@ code{font-family:var(--mono);font-size:.9em}
     <text class="mono t11 acc" x="1022" y="140" text-anchor="end">ARP L2 → nodo · kube-proxy → cualquier réplica</text>
 
     <!-- longhorn replication -->
-    <path class="repl" d="M616,624 V672 H966 V626" marker-start="url(#aInk)" marker-end="url(#aInk)"/>
-    <text class="t12" x="791" y="694" text-anchor="middle">Longhorn · replica-count 2 → una réplica en cada worker</text>
+    <path class="repl" d="M616,670 V718 H966 V672" marker-start="url(#aInk)" marker-end="url(#aInk)"/>
+    <text class="t12" x="791" y="740" text-anchor="middle">Longhorn · replica-count 2 → una réplica en cada worker</text>
 
     <!-- legend -->
-    <g transform="translate(20,742)">
+    <g transform="translate(20,788)">
       <rect class="pod" x="0" y="0" width="28" height="14" rx="2"/><text class="t12 mut" x="36" y="11">Deployment / pod estático</text>
       <rect class="ds" x="210" y="0" width="28" height="14" rx="2"/><text class="t12 mut" x="246" y="11">DaemonSet (uno por nodo)</text>
       <line class="flow" x1="420" y1="7" x2="456" y2="7"/><text class="t12 mut" x="464" y="11">tráfico de ingreso</text>
       <line class="repl" x1="600" y1="7" x2="636" y2="7"/><text class="t12 mut" x="644" y="11">replicación de volúmenes</text>
+      <rect class="metrics" x="830" y="0" width="28" height="14" rx="2"/><text class="t12 mut" x="866" y="11">métricas (metrics-server)</text>
     </g>
   </svg>
   </div>
-  <figcaption><b>Figura 1.</b> Un solo host Proxmox corre las tres VMs Talos. El HTTPS de la LAN entra por la VIP que anuncia MetalLB y kube-proxy lo reparte entre las dos réplicas de Traefik, una por worker. cert-manager sigue el mismo esquema (commit <code>23d754b</code>). En <code>talos-w-02</code> quedan solo metallb-controller, la UI de Longhorn y el driver-deployer. Los dos workers aportan un disco <code>sdb</code> de 100 GB a Longhorn.</figcaption>
+  <figcaption><b>Figura 1.</b> Un solo host Proxmox corre las tres VMs Talos. El HTTPS de la LAN entra por la VIP que anuncia MetalLB y kube-proxy lo reparte entre las dos réplicas de Traefik, una por worker. cert-manager sigue el mismo esquema (commit <code>23d754b</code>). metrics-server corre en <code>talos-w-01</code> y lee el kubelet de cada nodo en <code>:10250</code> validando TLS: los kubelets piden su certificado a la CA del cluster (<code>serverTLSBootstrap</code>) y <code>kubelet-serving-cert-approver</code> aprueba los CSR. Los componentes de una sola réplica quedaron en <code>talos-w-01</code>. Los dos workers aportan un disco <code>sdb</code> de 100 GB a Longhorn.</figcaption>
 </figure>
 
 <figure>
@@ -286,17 +290,19 @@ code{font-family:var(--mono);font-size:.9em}
         <tr><td>metallb</td><td class="m">metallb-system</td><td class="m">0.16.1</td><td class="m">v0.16.1</td></tr>
         <tr><td>cert-manager</td><td class="m">cert-manager</td><td class="m">v1.21.2</td><td class="m">v1.21.2</td></tr>
         <tr><td>traefik</td><td class="m">traefik</td><td class="m">41.6.0</td><td class="m">v3.7.13</td></tr>
+        <tr><td>metrics-server</td><td class="m">kube-system</td><td class="m">3.14.0</td><td class="m">0.9.0</td></tr>
       </tbody>
     </table>
     </div>
-    <p class="lede" style="margin-top:12px;font-size:14px">StorageClasses: <code>longhorn</code> (default) y <code>longhorn-static</code>. CNI: flannel. Grafana y kube-prometheus-stack ya no están instalados (commit <code>c06d91c</code>).</p>
+    <p class="lede" style="margin-top:12px;font-size:14px">StorageClasses: <code>longhorn</code> (default) y <code>longhorn-static</code>. CNI: flannel. <code>kubelet-serving-cert-approver</code> v0.12.1 se instala con <code>kubectl apply</code>, fuera de Helm. Grafana y kube-prometheus-stack ya no están instalados (commit <code>c06d91c</code>).</p>
   </section>
 
   <section>
     <h2>Observaciones</h2>
     <ul class="obs">
       <li><span class="pill ok">resuelto</span><span>Traefik y cert-manager ya no dependen de <code>talos-w-02</code>: 2 réplicas, una por worker, con PodDisruptionBudget y <code>topologySpreadConstraints</code> (<code>DoNotSchedule</code> + <code>nodeTaintsPolicy: Honor</code>). Si cae un worker, el ingreso sigue en el otro.</span></li>
-      <li><span class="pill info">nota</span><span>metallb-controller no admite réplicas (la VIP la siguen anunciando los speakers) y las 2 réplicas de longhorn-ui quedaron juntas en <code>w-02</code>: su anti-affinity tiene peso 1. Ninguno de los dos corta tráfico ni volúmenes.</span></li>
+      <li><span class="pill info">nota</span><span>metallb-controller no admite réplicas (la VIP la siguen anunciando los speakers) y las 2 réplicas de longhorn-ui quedaron juntas en <code>w-01</code>: su anti-affinity tiene peso 1. Ninguno de los dos corta tráfico ni volúmenes.</span></li>
+      <li><span class="pill info">nota</span><span>Un upgrade de Talos vacía cada worker y sus pods pasan al otro, pero nadie los redistribuye cuando el nodo vuelve. Después de un upgrade, hacer <code>kubectl rollout restart</code> de traefik y cert-manager para que quede una réplica por worker.</span></li>
       <li><span class="pill risk">riesgo</span><span>El control plane es un solo nodo: etcd y el API server no tienen HA. Los tres nodos, además, dependen del mismo host Proxmox.</span></li>
       <li><span class="pill info">nota</span><span>Con replica-count 2 y dos workers, cada volumen queda <em>degraded</em> apenas un worker no está disponible. No hay margen para programar una tercera réplica.</span></li>
       <li><span class="pill info">nota</span><span>El patch <code>talos/controlplane-metrics.yaml</code> sigue en el repo aunque se quitó Prometheus. Si está aplicado, las métricas del control plane quedan expuestas en 0.0.0.0 y nadie las lee.</span></li>
