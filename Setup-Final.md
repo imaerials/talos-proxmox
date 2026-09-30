@@ -89,7 +89,7 @@ YAML
 ```bash
 talosctl gen config $CLUSTER_NAME https://$CONTROL_PLANE_IP:6443 \
   --output-dir _out \
-  --install-image factory.talos.dev/metal-installer/88d1f7a5c4f1d3aba7df787c448c1d3d008ed29cfb34af53fa0df4336a56040b:v1.14.1 \
+  --install-image factory.talos.dev/metal-installer/88d1f7a5c4f1d3aba7df787c448c1d3d008ed29cfb34af53fa0df4336a56040b:v1.14.2 \
   --config-patch-worker @talos/longhorn-user-disk.yaml
 ```
 
